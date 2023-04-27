@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+Create a function safely_get_value
 """
 from typing import Any, Mapping, Optional, TypeVar, Union
 
