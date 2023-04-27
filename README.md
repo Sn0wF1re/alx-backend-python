@@ -1,0 +1,1 @@
+The repository handles python projects for the ALX-SE specialization track.
