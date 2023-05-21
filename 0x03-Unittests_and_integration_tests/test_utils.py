@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Create a TestAccessNestedMap class
-that inherits from unittest.TestCase
+Write unit tests for utils.py
 """
 import unittest
 from utils import access_nested_map, get_json, memoize
