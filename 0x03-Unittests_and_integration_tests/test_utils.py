@@ -4,7 +4,7 @@ Create a TestAccessNestedMap class
 that inherits from unittest.TestCase
 """
 import unittest
-from utils import access_nested_map, get_json
+from utils import access_nested_map, get_json, memoize
 from typing import Mapping, Sequence
 from parameterized import parameterized
 import requests
@@ -59,3 +59,35 @@ class TestGetJson(unittest.TestCase):
         res = get_json(test_url)
         self.assertEqual(res, test_payload)
         mock_get.assert_called_once_with(test_url)
+
+
+class TestMemoize(unittest.TestCase):
+    """
+    Implement the TestMemoize(unittest.TestCase) class
+    """
+    def test_memoize(self):
+        """
+        test memoize
+        """
+        class TestClass:
+            """
+            Create TestClass class
+            """
+            def a_method(self):
+                """
+                returns 42
+                """
+                return 42
+
+            @memoize
+            def a_property(self):
+                """
+                returns a_method
+                """
+                return self.a_method()
+
+        with patch.object(TestClass, "a_method") as mock:
+            test_class = TestClass()
+            test_class.a_property()
+            test_class.a_property()
+            mock.assert_called_once()
