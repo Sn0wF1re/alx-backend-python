@@ -4,10 +4,11 @@ Write unit tests for client.py
 """
 import unittest
 from unittest.mock import patch, PropertyMock
-from parameterized import parameterized
+from parameterized import parameterized, parameterized_class
 import client
 from client import GithubOrgClient
 from typing import Dict
+from fixtures import TEST_PAYLOAD
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -70,3 +71,69 @@ class TestGithubOrgClient(unittest.TestCase):
         instance = GithubOrgClient('solana')
         hasLicense = instance.has_license(repo, license_key)
         self.assertEqual(hasLicense, expected)
+
+
+def get_requests(*args, **kwargs):
+    """
+    Mock requests.get
+    """
+    class MockResp:
+        """
+        Mock response
+        """
+        def __init__(self, json_data):
+            """
+            initialize class instance
+            """
+            self.json_data = json_data
+
+        def json(self):
+            """
+            return the json data
+            """
+            return self.json_data
+
+    if args[0] == "https://api.github.com/orgs/google":
+        return MockResp(TEST_PAYLOAD[0][0])
+    if args[0] == TEST_PAYLOAD[0][0]["repos_url"]:
+        return MockResp(TEST_PAYLOAD[0][1])
+
+
+@parameterized_class(
+    ('org_payload', 'repos_payload', 'expected_repos', 'apache2_repos'),
+    [(TEST_PAYLOAD[0][0], TEST_PAYLOAD[0][1], TEST_PAYLOAD[0][2],
+      TEST_PAYLOAD[0][3])]
+)
+class TestIntegrationGithubOrgClient(unittest.TestCase):
+    """
+    Integration test for the GithubOrgClient.public_repos method
+    """
+    @classmethod
+    def setUpClass(cls):
+        """
+        mock requests.get to return example payloads found in the fixtures
+        """
+        cls.get_patcher = patch('utils.requests.get', side_effect=get_requests)
+        cls.get_patcher.start()
+        cls.client = GithubOrgClient('google')
+
+    @classmethod
+    def tearDownClass(cls):
+        """
+        Stops the patcher
+        """
+        cls.get_patcher.stop()
+
+    def test_public_repos(self):
+        """
+        Unit test public_repos() without license
+        """
+        self.assertEqual(self.client.public_repos(), self.expected_repos)
+
+    def test_public_repos_with_license(self):
+        """
+        Unit test public_repos() with license
+        """
+        self.assertEqual(
+            self.client.public_repos(license="apache-2.0"),
+            self.apache2_repos)
