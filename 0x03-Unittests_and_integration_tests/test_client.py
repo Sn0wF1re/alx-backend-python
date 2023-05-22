@@ -7,6 +7,7 @@ from unittest.mock import patch, PropertyMock
 from parameterized import parameterized
 import client
 from client import GithubOrgClient
+from typing import Dict
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -56,3 +57,16 @@ class TestGithubOrgClient(unittest.TestCase):
                 self.assertIn(mock_repo.return_value[i]["name"], result)
             mock_repo.assert_called_once()
             mock_pub.assert_called_once()
+
+    @parameterized.expand([
+        ({"license": {"key": "my_license"}}, "my_license", True),
+        ({"license": {"key": "other_license"}}, "my_license", False)
+    ])
+    def test_has_license(self, repo: Dict[str, Dict],
+                         license_key: str, expected) -> None:
+        """
+        unit-test GithubOrgClient.has_license
+        """
+        instance = GithubOrgClient('solana')
+        hasLicense = instance.has_license(repo, license_key)
+        self.assertEqual(hasLicense, expected)
